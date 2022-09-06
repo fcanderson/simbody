@@ -123,7 +123,7 @@ int main() {
         bool VisOn = true;
 
         // Specify initial conditions.
-        int condition = 5;
+        int condition = 4;
         // 0 = sitting still
         // 1 = dropped
         // 2 = sliding
@@ -175,7 +175,7 @@ int main() {
                 unique_ptr<CompliantContactSubsystem>(
                     new CompliantContactSubsystem(system, *tracker));
             contactForces->setTrackDissipatedEnergy(true);
-            contactForces->setTransitionVelocity(1.0e-3);
+            contactForces->setTransitionVelocity(1.0e-2);
             // Ground
             matter.Ground().updBody().addContactSurface(
                 Transform(R_xdown, Vec3(0, 0, 0)),
