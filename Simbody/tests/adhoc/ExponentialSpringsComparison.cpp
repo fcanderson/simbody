@@ -276,7 +276,7 @@ int main() {
             if (condition == 2) {
                 blockCmp->setQToFitRotation(state, R);
                 blockCmp->setQToFitTranslation(state, Vec3(-0.5, 0.1, 0.0));
-                blockCmp->setU(state, Vec6(0, 0, 0, 4.0, 0, 0));
+                blockCmp->setU(state, Vec6(0, 0, 0, 8.0, 0, 0));
                 blockCmp->setUToFitAngularVelocity(state, Vec3(0.0, 0.0, 0.0));
             }
             // Spinning flat
@@ -284,13 +284,13 @@ int main() {
                 blockCmp->setQToFitRotation(state, R);
                 blockCmp->setQToFitTranslation(state, Vec3(-0.5, 0.1, 0.0));
                 blockCmp->setU(state, Vec6(0, 0, 0, 0.0, 0, 0));
-                blockCmp->setUToFitAngularVelocity(state, Vec3(0.0, 8.0, 0.0));
+                blockCmp->setUToFitAngularVelocity(state, Vec3(0.0, 16.0, 0.0));
             }
             // Spinning and Sliding
             if (condition == 4) {
                 blockCmp->setQToFitRotation(state, R);
                 blockCmp->setQToFitTranslation(state, Vec3(-0.5, 0.1, 0.0));
-                blockCmp->setU(state, Vec6(0, 0, 0, 2.0, 0, 0));
+                blockCmp->setU(state, Vec6(0, 0, 0, 3.0, 0, 0));
                 blockCmp->setUToFitAngularVelocity(state, Vec3(0.0,12.0,0.0));
             }
             // Spinning top
@@ -343,7 +343,7 @@ int main() {
             if (condition == 2) {
                 blockExp->setQToFitRotation(state, R);
                 blockExp->setQToFitTranslation(state, Vec3(-0.5, 0.1, 0.5));
-                blockExp->setU(state, Vec6(0, 0, 0, 4.0, 0, 0));
+                blockExp->setU(state, Vec6(0, 0, 0, 8.0, 0, 0));
                 blockExp->setUToFitAngularVelocity(state, Vec3(0.0, 0.0, 0.0));
             }
             // Spinning
@@ -351,13 +351,13 @@ int main() {
                 blockExp->setQToFitRotation(state, R);
                 blockExp->setQToFitTranslation(state, Vec3(0.5, 0.1, 0.0));
                 blockExp->setU(state, Vec6(0, 0, 0, 0.0, 0, 0));
-                blockExp->setUToFitAngularVelocity(state, Vec3(0.0, 8.0, 0.0));
+                blockExp->setUToFitAngularVelocity(state, Vec3(0.0, 16.0, 0.0));
             }
             // Spinning and Sliding
             if (condition == 4) {
                 blockExp->setQToFitRotation(state, R);
                 blockExp->setQToFitTranslation(state, Vec3(0.5, 0.1, 0.0));
-                blockExp->setU(state, Vec6(0, 0, 0, 2.0, 0, 0));
+                blockExp->setU(state, Vec6(0, 0, 0, 3.0, 0, 0));
                 blockExp->setUToFitAngularVelocity(state, Vec3(0.0,12.0,0.0));
             }
             // Spinning top
@@ -397,12 +397,12 @@ int main() {
         // Simulate it.
         RungeKuttaMersonIntegrator integ(system);
         integ.setAccuracy(1.0e-5);
-        integ.setMaximumStepSize(0.05);
+        integ.setMaximumStepSize(0.03);
         TimeStepper ts(system, integ);
         ts.initialize(state);
         double cpuStart = cpuTime();
         double realStart = realTime();
-        ts.stepTo(10.0);
+        ts.stepTo(12.0);
         double cpuDuration = cpuTime() - cpuStart;
         double realDuration = realTime() - realStart;
         // Report integrator performance
