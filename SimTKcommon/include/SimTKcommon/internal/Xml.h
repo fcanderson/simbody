@@ -24,6 +24,17 @@
  * limitations under the License.                                             *
  * -------------------------------------------------------------------------- */
 
+#ifdef _DEBUG
+#define DBG_NEW new ( _NORMAL_BLOCK , __FILE__ , __LINE__ )
+ // Replace _NORMAL_BLOCK with _CLIENT_BLOCK if you want the
+ // allocations to be of _CLIENT_BLOCK type
+#else
+#define DBG_NEW new
+#endif
+
+#define _CRTDBG_MAP_ALLOC
+
+
 #include "SimTKcommon/internal/common.h"
 #include "SimTKcommon/internal/Array.h"
 #include "SimTKcommon/internal/String.h"
@@ -878,7 +889,8 @@ friend class Element;
 
 Node& unconst() const {return *const_cast<Node*>(this);}
 
-TiXmlNode*      tiNode; // the lone data member
+TiXmlNode*      tiNode;     // Pointer to the underlying Tiny XML node
+const String    nullStr;    // For returns when an error occurs
 };
 
 /** Output a "pretty printed" textual representation of the given XML
@@ -1065,8 +1077,8 @@ allowed (generally any type for which a stream insertion operator<<()
 exists).
 @see getValueAs<T>(), setValueAs<T>()**/
 template <class T>
-Element(const String& tagWord, const T& value)
-{   new(this) Element(tagWord, String(value)); }
+Element(const String& tagWord, const T& value) : Element(tagWord)
+{ this->setValue(String(value)); }
 
 /** The clone() method makes a deep copy of this Element and its children and
 returns a new orphan Element with the same contents; ordinary assignment and
