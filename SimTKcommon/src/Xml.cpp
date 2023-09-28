@@ -718,12 +718,11 @@ bool Xml::Element::isValueElement() const {
 }
 
 const String& Xml::Element::getValue() const {
-    static const String null;
     SimTK_ERRCHK1_ALWAYS(isValueElement(), "Xml::Element::getValue()",
         "Element <%s> is not a value element.", getElementTag().c_str());
 
     node_iterator text = unconst().node_begin(TextNode);
-    return text == node_end() ? null : text->getNodeText();
+    return text == node_end() ? nullStr : text->getNodeText();
 }
 
 // Must add a Text node now if this Element doesn't have one.
