@@ -83,7 +83,7 @@ public:
     // get our root element pointing correctly into the copy rather than
     // at the source's root element.
     Impl* clone() const {
-        Impl* newImpl = new Impl();
+        Impl* newImpl = DBG_NEW Impl();
         newImpl->m_tixml = m_tixml;
         // root element isn't set yet
         return newImpl;
@@ -176,7 +176,7 @@ public:
 
         if (child)
             m_tixml.DisconnectChild(child); // it's in the wrong place
-        else child = new TiXmlDeclaration("1.0", "UTF-8", "");
+        else child = DBG_NEW TiXmlDeclaration("1.0", "UTF-8", "");
 
         // Insert new node as the first in the document.
         m_tixml.LinkBeginChild(child);
@@ -191,7 +191,7 @@ public:
     // is returned.
     TiXmlElement* addRootElementIfNeeded() {
         // Find the first element or text node, and remember the node that
-        // preceded it since that's where we may be inserting the new root
+        // preceded it since that's where we may be inserting the DBG_NEW root
         // element.
         TiXmlNode* nodeBeforeFirst = 0;
         TiXmlNode* firstEltOrText = m_tixml.FirstChild();
@@ -203,7 +203,7 @@ public:
         if (!firstEltOrText) {
             // No top level element or text node. We'll just append an empty
             // _Root element to the end of whatever's there.
-            TiXmlElement* root = new TiXmlElement("_Root");
+            TiXmlElement* root = DBG_NEW TiXmlElement("_Root");
             m_tixml.LinkEndChild(root);
             return root;
         }
@@ -228,7 +228,7 @@ public:
         // Now we know there is top-level text or more than one top-level
         // element so we are going to have to surround everything between
         // first and last with a new root element.
-        TiXmlElement* root = new TiXmlElement("_Root");
+        TiXmlElement* root = DBG_NEW TiXmlElement("_Root");
 
         TiXmlNode* nextToMove = firstEltOrText;
         while(true) {
@@ -269,12 +269,12 @@ private:
 
 
 Xml::Document::Document() : impl(0) {
-    impl = new Impl();
+    impl = DBG_NEW Impl();
     impl->canonicalizeDocument();
 }
 
 Xml::Document::Document(const String& pathname) : impl(0) {
-    impl = new Impl(pathname);
+    impl = DBG_NEW Impl(pathname);
     impl->canonicalizeDocument();
 }
 
@@ -464,7 +464,7 @@ Xml::node_iterator Xml::Document::node_end() const
 //                              XML ATTRIBUTE
 //------------------------------------------------------------------------------
 Xml::Attribute::Attribute(const String& name, const String& value)
-:   tiAttr(new TiXmlAttribute(name,value)) {}
+:   tiAttr(DBG_NEW TiXmlAttribute(name,value)) {}
 
 void Xml::Attribute::clear() {
     tiAttr = 0;
@@ -693,10 +693,10 @@ static bool elementIsAllowed(const String& tag,
 }
 
 Xml::Element::Element(const String& tag, const String& value)
-:   Node(new TiXmlElement(tag)) {
+:   Node(DBG_NEW TiXmlElement(tag)) {
     if (value.empty()) return;
     // We need to add a Text node.
-    updTiElement().LinkEndChild(new TiXmlText(value));
+    updTiElement().LinkEndChild(DBG_NEW TiXmlText(value));
 }
 
 Xml::Element Xml::Element::clone() const {
@@ -718,11 +718,12 @@ bool Xml::Element::isValueElement() const {
 }
 
 const String& Xml::Element::getValue() const {
+    const static String null;
     SimTK_ERRCHK1_ALWAYS(isValueElement(), "Xml::Element::getValue()",
         "Element <%s> is not a value element.", getElementTag().c_str());
 
     node_iterator text = unconst().node_begin(TextNode);
-    return text == node_end() ? nullStr : text->getNodeText();
+    return text == node_end() ? null : text->getNodeText();
 }
 
 // Must add a Text node now if this Element doesn't have one.
@@ -734,7 +735,7 @@ String& Xml::Element::updValue() {
     if (text != node_end()) return Text::getAs(*text).updText();
 
     // We need to add a Text node.
-    TiXmlText* textp = new TiXmlText("");
+    TiXmlText* textp = DBG_NEW TiXmlText("");
     updTiElement().LinkEndChild(textp);
     return textp->UpdValueStr();
 }
@@ -746,7 +747,7 @@ void Xml::Element::setValue(const String& value) {
         "Element <%s> is not a value element.", getElementTag().c_str());
 
     node_iterator text = node_begin(TextNode);
-    if (text == node_end()) updTiNode().LinkEndChild(new TiXmlText(value));
+    if (text == node_end()) updTiNode().LinkEndChild(DBG_NEW TiXmlText(value));
     else                    text->updTiNode().SetValue(value);
 }
 
@@ -982,7 +983,7 @@ operator--(int) {
 //------------------------------------------------------------------------------
 //                             XML TEXT NODE
 //------------------------------------------------------------------------------
-Xml::Text::Text(const String& text) : Node(new TiXmlText(text)) {}
+Xml::Text::Text(const String& text) : Node(DBG_NEW TiXmlText(text)) {}
 
 
 Xml::Text Xml::Text::clone() const {
@@ -1017,7 +1018,7 @@ String& Xml::Text::updText()
 //------------------------------------------------------------------------------
 //                           XML COMMENT NODE
 //------------------------------------------------------------------------------
-Xml::Comment::Comment(const String& text) : Node(new TiXmlComment(text)) {}
+Xml::Comment::Comment(const String& text) : Node(DBG_NEW TiXmlComment(text)) {}
 
 Xml::Comment Xml::Comment::clone() const {
     TiXmlComment* newComment = 0;
@@ -1046,7 +1047,7 @@ Xml::Comment Xml::Comment::clone() const {
 //------------------------------------------------------------------------------
 //                           XML UNKNOWN NODE
 //------------------------------------------------------------------------------
-Xml::Unknown::Unknown(const String& contents) : Node(new TiXmlUnknown())
+Xml::Unknown::Unknown(const String& contents) : Node(DBG_NEW TiXmlUnknown())
 {   updTiNode().SetValue(contents); }
 
 Xml::Unknown Xml::Unknown::clone() const {
