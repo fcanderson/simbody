@@ -890,7 +890,6 @@ friend class Element;
 Node& unconst() const {return *const_cast<Node*>(this);}
 
 TiXmlNode*      tiNode;     // Pointer to the underlying Tiny XML node
-const String    nullStr;    // For returns when an error occurs
 };
 
 /** Output a "pretty printed" textual representation of the given XML
@@ -1077,8 +1076,8 @@ allowed (generally any type for which a stream insertion operator<<()
 exists).
 @see getValueAs<T>(), setValueAs<T>()**/
 template <class T>
-Element(const String& tagWord, const T& value) : Element(tagWord)
-{ this->setValue(String(value)); }
+Element(const String& tagWord, const T& value) : Element(tagWord,String(value))
+{}
 
 /** The clone() method makes a deep copy of this Element and its children and
 returns a new orphan Element with the same contents; ordinary assignment and
