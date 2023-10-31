@@ -287,6 +287,108 @@ void testXmlFromScratch() {
     neverMind.clearOrphan();
 }
 
+/*_____________________________________________________________________________
+A memory leak is showning up in OpenSim. The operations surrounding the leak
+consist of a clone, an add, and an erase. By reproducing analogous operations,
+this method tests whether or not the source of the leak is in the
+implementation of SimTK::Xml.
+
+First, build an XML document that has the following structure:
+
+    <TestMemoryLeak>
+        <Model name="simple">
+            <author> Attila </author>
+            <Set>
+                <Body name="ground">
+                    <mass> 0 </mass>
+                    <VisibleObject>
+                        <show> true </show>
+                    </VisibleObject>
+                </Body>
+            </Set>
+        </Model>
+    </MemoryLeak>
+
+Then move the "ground" Body out of the BodySet into a <Ground> element of its
+own so that the doc looks like the following:
+
+    <StartingDocument>
+        <Model name="simple">
+            <author> Attila </author>
+            <Ground>
+                <VisibleObject>
+                    <show> true </show>
+                </VisibleObject>
+            </Ground>
+            <Set />
+        </Model>
+    </StartingDocument>
+
+This is done by making a new <Ground> element, adding a clone of VisibleObject
+to it, and erasing the original <Body> element.
+
+Note that instrumentation of the code for memory leak detection is platform
+specific (e.g., WindCRT on Windows, libASAN on Ubuntu) and so, at this point,
+the steps necessary to add leak detection are left to the indvidual running
+the tests.
+
+*/
+void testXmlMemoryLeak() {
+    //-------------
+    // Make the Doc
+    Xml::Document doc;
+    doc.setRootTag("MemoryLeakTest");
+    // Model "simple"
+    Xml::Element model("Model");
+    model.setAttributeValue("name","simple");
+    doc.getRootElement().appendNode(model);
+    // Model > Author
+    Xml::Element author("author");
+    author.setValue("Attila");
+    model.appendNode(author);
+    // Model > Set
+    Xml::Element set("Set");
+    model.appendNode(set);
+    // Model > Set > Body "ground"
+    Xml::Element body("Body");
+    body.setAttributeValue("name","ground");
+    set.appendNode(body);
+    // Model > Set > Body > mass
+    Xml::Element mass("mass");
+    mass.setValue("0.0");
+    body.appendNode(mass);
+    // Model > Set > Body > VisibleObject
+    Xml::Element vis("VisibleObject");
+    body.appendNode(vis);
+    // Model > Set > Body > VisibleObject > show
+    Xml::Element show("show");
+    show.setValue("true");
+    vis.appendNode(show);
+
+    //---------------
+    // Output the Doc
+    cout << endl << "testXmlMemoryLeak ------" << endl << doc << endl;
+
+    //------------------
+    // Revise the Doc
+    // Clone Vis
+    Xml::Element visClone = vis.clone();
+    // Create the new Ground element
+    Xml::Element ground("Ground");
+    ground.appendNode(visClone);
+    // Insert the new Ground element before the Set element
+    Xml::node_iterator posSet = model.element_begin("Set");
+    model.insertNodeBefore(posSet, ground);
+    // Erase the original Body element
+    Xml::node_iterator posBody = set.element_begin("Body");
+    set.eraseNode(posBody);
+
+    //---------------------
+    // Output the Doc again
+    cout << endl << "testXmlMemoryLeak ------" << endl << doc << endl;
+
+}
+
 #define SHOWIT(something) \
     cout << String(#something) << String("'") << something << String("'\n")
 
@@ -337,15 +439,28 @@ int testInNestedScope() {
         SimTK_SUBTEST(testStringConvert);
         SimTK_SUBTEST(testXmlFromString);
         SimTK_SUBTEST(testXmlFromScratch);
+        SimTK_SUBTEST(testXmlMemoryLeak);
 
     SimTK_END_TEST();
 }
 
 
 int main() {
+    _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
     _CrtDumpMemoryLeaks();
+
     int retValue = testInNestedScope();
+
     _CrtDumpMemoryLeaks();
+
+    // Intentional Leak
+    // Verifies that the leak detection utility is running after main() exits,
+    // which is needed to verify that memory associated with static variables
+    // is being released.
+    cout << endl << endl << "--------- Testing Complete --------"<< endl;
+    char* name = new char[11];
+
+
     return retValue;
 }
 
